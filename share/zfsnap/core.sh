@@ -429,12 +429,12 @@ TrimToTTL() {
     fi
 }
 
-# Retvals the snapshot TTL obtained from the ZFS property 'zfsnap:ttl'
+# Retvals the snapshot TTL obtained from the ZFS property 'org.zfsnap:ttl'
 # If no valid TTL could be found, it will return 1.
 # Note that this is not testable, since we need a live ZFS snapshot.
 GetPropertyTTL() {
     local snapshot="$1"
-    local ttl=`$ZFS_CMD get -H -o value zfsnap:ttl $snapshot`
+    local ttl=`$ZFS_CMD get -H -o value org.zfsnap:ttl $snapshot`
 
     if ValidTTL "$ttl"; then
         RETVAL=$ttl && return 0
@@ -443,7 +443,7 @@ GetPropertyTTL() {
     fi
 }
 
-# Sets the property 'zfsnap:ttl' to the desired snapshot TTL
+# Sets the property 'org.zfsnap:ttl' to the desired snapshot TTL
 # If setting the ZFS property fails, it will return 1.
 # Note that this is not testable, since we need a live ZFS snapshot.
 SetPropertyTTL() {
@@ -462,14 +462,14 @@ SetPropertyTTL() {
                 TrimToDate "$child" && local child_date="$RETVAL" || continue
 		TrimToPrefix "$child" && local child_prefix="$RETVAL" || local child_prefix=''
                 if [ "$parent_prefix" = "$child_prefix" ] && [ "$parent_date" = "$child_date" ]; then
-                    $ZFS_CMD set zfsnap:ttl=$ttl "$child" || Error "Could not set zfsnap:ttl property on $child"
+                    $ZFS_CMD set org.zfsnap:ttl=$ttl "$child" || Error "Could not set org.zfsnap:ttl property on $child"
                 fi
             done
         else
-            $ZFS_CMD set zfsnap:ttl=$ttl "$snapshot" || Error "Could not set zfsnap:ttl property on $snapshot"
+            $ZFS_CMD set org.zfsnap:ttl=$ttl "$snapshot" || Error "Could not set org.zfsnap:ttl property on $snapshot"
         fi
     else
-        printf '%s\n' "$ZFS_CMD set zfsnap:ttl=$ttl \"$snapshot\""
+        printf '%s\n' "$ZFS_CMD set org.zfsnap:ttl=$ttl \"$snapshot\""
     fi
     return 0
 }
