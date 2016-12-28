@@ -84,23 +84,32 @@ TTL_PROPERTY='true'
 # Valid names w/o prefix
 PREFIXES=''
 ItReturns "ValidSnapshotName '2010-04-05_02.06.00'"                  0   # no TTL provided
+ItReturns "ValidSnapshotName '2011-04-05_02.06.00--1y'"              0   # typical snapshot name, still valid w/ TTL
+ItReturns "ValidSnapshotName '2010-04-05_02.06.00--9y2m3w4d5h6M7s'"  0   # long TTL, still valid
 
 # Valid names w/ prefix(es)
 PREFIXES='hourly-'
 ItReturns "ValidSnapshotName 'hourly-2011-04-05_02.06.00'"           0   # single prefix
+ItReturns "ValidSnapshotName 'hourly-2011-04-05_02.06.00--12d'"      0   # single prefix, still valid w/ TTL
 
 PREFIXES='daily--'
-ItReturns "ValidSnapshotName 'daily--2011-04-05_02.06.00'"           0   # single prefix using TTL delim
+ItReturns "ValidSnapshotName 'daily--2011-04-05_02.06.00'"           0   # single prefix
+ItReturns "ValidSnapshotName 'daily--2011-04-05_02.06.00--56y32w'"   0   # single prefix using TTL delim, still valid
 
 PREFIXES='hourly- weekly-'
 ItReturns "ValidSnapshotName 'hourly-2011-04-05_02.06.00'"           0   # first prefix w/ two prefixes defined
 ItReturns "ValidSnapshotName 'weekly-2011-04-05_02.06.00'"           0   # second prefix w/ two prefixes defined
+ItReturns "ValidSnapshotName 'hourly-2011-04-05_02.06.00--1w'"       0   # first prefix w/ two prefixes and TTL defined
+ItReturns "ValidSnapshotName 'weekly-2011-04-05_02.06.00--19s'"      0   # second prefix w/ two prefixes and TTL defined
 
 PREFIXES='hourly- weekly- monthly-'
 ItReturns "ValidSnapshotName 'hourly-2011-04-05_02.06.00'"           0   # first prefix w/ three prefixes defined
 ItReturns "ValidSnapshotName 'weekly-2011-04-05_02.06.00'"           0   # middle prefix w/ three prefixes defined
 ItReturns "ValidSnapshotName 'monthly-2011-04-05_02.06.00'"          0   # last prefix w/ three prefixes defined
-ItReturns "ValidSnapshotName 'monthly-2011-04-05_02.06.00'"          0   # forever TTL
+ItReturns "ValidSnapshotName 'hourly-2011-04-05_02.06.00--3w'"       0   # first prefix w/ three prefixes and TTL defined
+ItReturns "ValidSnapshotName 'weekly-2011-04-05_02.06.00--6m'"       0   # middle prefix w/ three prefixes and TTL defined
+ItReturns "ValidSnapshotName 'monthly-2011-04-05_02.06.00--5M'"      0   # last prefix w/ three prefixes and TTL defined
+ItReturns "ValidSnapshotName 'monthly-2011-04-05_02.06.00--forever'" 0   # forever TTL, still valid
 
 ###
 # Invalid names w/ TTL property
@@ -146,9 +155,5 @@ ItReturns "ValidSnapshotName '--1M'"                                 1   # only 
 PREFIXES='weekly-'
 ItReturns "ValidSnapshotName 'weekly--4w'"                           1   # no date provided
 ItReturns "ValidSnapshotName 'weekly-'"                              1   # only prefix provided
-
-# Valid name, but contains TTL
-PREFIXES=''
-ItReturns "ValidSnapshotName '2010-04-05_02.06.00--5y'"              1   # TTL present in name
 
 ExitTests

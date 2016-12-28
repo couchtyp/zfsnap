@@ -487,7 +487,7 @@ ValidSnapshotName() {
     TrimToDate "$snapshot_name" && local snapshot_date="$RETVAL" || return 1
     TrimToTTL "$snapshot_name" && local snapshot_ttl="$RETVAL"
 
-    if IsTrue "$TTL_PROPERTY" -a "$snapshot_ttl" != ""; then
+    if IsTrue "$TTL_PROPERTY" && [ "$snapshot_ttl" = "" ]; then
         local rebuilt_name="${snapshot_prefix}${snapshot_date}"
     else
         [ "$snapshot_ttl" = "" ] && return 1
