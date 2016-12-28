@@ -454,14 +454,11 @@ SetPropertyTTL() {
     if IsFalse $DRY_RUN; then
         if [ "${opts#*-r}" != "${opts}" ]; then
             TrimToFileSystem "$snapshot" && local parent_fs="$RETVAL"
-            TrimToDate "$snapshot" && local parent_date="$RETVAL"
-            TrimToPrefix "$snapshot" && local parent_prefix="$RETVAL" || local parent_prefix=''
-
+            TrimToSnapshotName "$snapshot" && local parent_sn="$RETVAL"
             SNAPSHOT_CHILDREN=`$ZFS_CMD list -H -o name -s name -t snapshot -r $parent_fs` >&2
             for child in $SNAPSHOT_CHILDREN; do
-                TrimToDate "$child" && local child_date="$RETVAL" || continue
-		TrimToPrefix "$child" && local child_prefix="$RETVAL" || local child_prefix=''
-                if [ "$parent_prefix" = "$child_prefix" ] && [ "$parent_date" = "$child_date" ]; then
+                TrimToSnapshotName "$child" && local child_sn="$RETVAL" || continue
+                if [ "$parent_sn" = "$child_sn" ]; then
                     $ZFS_CMD set org.zfsnap:ttl=$ttl "$child" || Error "Could not set org.zfsnap:ttl property on $child"
                 fi
             done
