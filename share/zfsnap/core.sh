@@ -23,7 +23,7 @@ DRY_RUN='false'                     # Dry run?
 POOLS=''                            # List of pools
 FS_LIST=''                          # List of all ZFS filesystems
 SKIP_POOLS=''                       # List of pools to skip
-TTL_PROPERTY='true'                 # Use TTL ZFS property?
+TTL_PROPERTY='false'                # Use TTL ZFS property?
 
 readonly OS=`uname`
 readonly DATE_PATTERN='[12][90][0-9][0-9]-[01][0-9]-[0-3][0-9]_[0-2][0-9].[0-5][0-9].[0-5][0-9]'
