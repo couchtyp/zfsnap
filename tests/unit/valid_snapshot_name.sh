@@ -8,6 +8,7 @@
 ###
 # Valid names
 ###
+TTL_PROPERTY='false'
 # Valid names w/o prefix
 PREFIXES=''
 ItReturns "ValidSnapshotName '2011-04-05_02.06.00--1y'"              0   # typical snapshot name

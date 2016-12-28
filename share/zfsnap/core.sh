@@ -23,7 +23,7 @@ DRY_RUN='false'                     # Dry run?
 POOLS=''                            # List of pools
 FS_LIST=''                          # List of all ZFS filesystems
 SKIP_POOLS=''                       # List of pools to skip
-TTL_PROPERTY='false'                # Use TTL ZFS property?
+TTL_PROPERTY='true'                 # Use TTL ZFS property?
 
 readonly OS=`uname`
 readonly DATE_PATTERN='[12][90][0-9][0-9]-[01][0-9]-[0-3][0-9]_[0-2][0-9].[0-5][0-9].[0-5][0-9]'
@@ -452,11 +452,24 @@ SetPropertyTTL() {
     local opts="$3"
 
     if IsFalse $DRY_RUN; then
-        $ZFS_CMD set zfsnap:ttl=$ttl "$snapshot" || return 1
-        [ "$opts" = "-r" ] && $ZFS_CMD inherit -r zfsnap:ttl "$snapshot"
+        if [ "${opts#*-r}" != "${opts}" ]; then
+            TrimToFileSystem "$snapshot" && local parent_fs="$RETVAL"
+            TrimToDate "$snapshot" && local parent_date="$RETVAL"
+            TrimToPrefix "$snapshot" && local parent_prefix="$RETVAL" || local parent_prefix=''
+
+            SNAPSHOT_CHILDREN=`$ZFS_CMD list -H -o name -s name -t snapshot -r $parent_fs` >&2
+            for child in $SNAPSHOT_CHILDREN; do
+                TrimToDate "$child" && local child_date="$RETVAL" || continue
+		TrimToPrefix "$child" && local child_prefix="$RETVAL" || local child_prefix=''
+                if [ "$parent_prefix" = "$child_prefix" ] && [ "$parent_date" = "$child_date" ]; then
+                    $ZFS_CMD set zfsnap:ttl=$ttl "$child" || Error "Could not set zfsnap:ttl property on $child"
+                fi
+            done
+        else
+            $ZFS_CMD set zfsnap:ttl=$ttl "$snapshot" || Error "Could not set zfsnap:ttl property on $snapshot"
+        fi
     else
         printf '%s\n' "$ZFS_CMD set zfsnap:ttl=$ttl \"$snapshot\""
-        [ "$opts" = "-r" ] && printf '%s\n' "$ZFS_CMD inherit -r zfsnap:ttl \"$snapshot\""
     fi
     return 0
 }
