@@ -73,15 +73,21 @@ while [ "$1" ]; do
 
         CURRENT_DATE=${CURRENT_DATE:-`date "+$TIME_FORMAT"`}
 
-        ZFS_SNAPSHOT="$ZFS_CMD snapshot $ZOPT ${1}@${PREFIX}${CURRENT_DATE}--${TTL}"
+        ZFS_SNAPSHOT_NAME="${1}@${PREFIX}${CURRENT_DATE}"
+	if IsFalse $TTL_PROPERTY; then
+            ZFS_SNAPSHOT_NAME="${ZFS_SNAPSHOT_NAME}--${TTL}"
+        fi
+        ZFS_SNAPSHOT="$ZFS_CMD snapshot $ZOPT ${ZFS_SNAPSHOT_NAME}"
         if IsFalse "$DRY_RUN"; then
             if $ZFS_SNAPSHOT >&2; then
+		isTrue $TTL_PROPERTY && SetPropertyTTL "${ZFS_SNAPSHOT_NAME}" "${TTL}"
                 IsTrue $VERBOSE && printf '%s ... DONE\n' "$ZFS_SNAPSHOT"
             else
                 IsTrue $VERBOSE && printf '%s ... FAIL\n' "$ZFS_SNAPSHOT"
             fi
         else
             printf '%s\n' "$ZFS_SNAPSHOT"
+            printf '%s\n' "SetPropertyTTL \"${ZFS_SNAPSHOT_NAME}\" \"${TTL}\""
         fi
 
         shift

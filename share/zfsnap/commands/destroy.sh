@@ -93,7 +93,11 @@ while [ -n "$1" ]; do
                 if IsTrue "$FORCE_DELETE_BY_AGE"; then
                     DatePlusTTL "$CREATE_DATE" "$FORCE_AGE_TTL" && EXPIRATION_DATE=$RETVAL || continue
                 else
-                    TrimToTTL "$SNAPSHOT_NAME" && TTL=$RETVAL || continue
+                    if IsFalse $TTL_PROPERTY -o SnapshotNameIncludesTTL "$SNAPSHOT_NAME"; then
+                        TrimToTTL "$SNAPSHOT_NAME" && TTL=$RETVAL || continue
+                    else
+                        GetPropertyTTL "$SNAPSHOT_NAME" && TTL=$RETVAL || continue
+                    fi
                     [ "$TTL" = 'forever' ] && continue
                     DatePlusTTL "$CREATE_DATE" "$TTL" && EXPIRATION_DATE=$RETVAL || continue
                 fi

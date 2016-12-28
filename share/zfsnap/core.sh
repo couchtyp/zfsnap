@@ -23,6 +23,7 @@ DRY_RUN='false'                     # Dry run?
 POOLS=''                            # List of pools
 FS_LIST=''                          # List of all ZFS filesystems
 SKIP_POOLS=''                       # List of pools to skip
+TTL_PROPERTY='false'                # Use TTL ZFS property?
 
 readonly OS=`uname`
 readonly DATE_PATTERN='[12][90][0-9][0-9]-[01][0-9]-[0-3][0-9]_[0-2][0-9].[0-5][0-9].[0-5][0-9]'
@@ -428,6 +429,31 @@ TrimToTTL() {
     fi
 }
 
+# Retvals the snapshot TTL obtained from the ZFS property 'zfsnap:ttl'
+# If no valid TTL could be found, it will return 1.
+# Note that this is not testable, since we need a live ZFS snapshot.
+GetPropertyTTL() {
+    local snapshot="$1"
+    local ttl=`$ZFS_CMD get -H -o value zfsnap:ttl $snapshot`
+
+    if ValidTTL "$ttl"; then
+        RETVAL=$ttl && return 0
+    else
+        RETVAL='' && return 1
+    fi
+}
+
+# Sets the property 'zfsnap:ttl' to the desired snapshot TTL
+# If setting the ZFS property fails, it will return 1.
+# Note that this is not testable, since we need a live ZFS snapshot.
+SetPropertyTTL() {
+    local snapshot="$1"
+    local ttl="$2"
+
+    # Check ValidTTL?
+    $ZFS_CMD set zfsnap:ttl=$ttl $snapshot && return 0
+}
+
 # Check validity of a zfsnap date
 ValidDate() {
     [ -z "$1" ] && return 1
@@ -456,10 +482,23 @@ ValidSnapshotName() {
 
     TrimToPrefix "$snapshot_name" && local snapshot_prefix="$RETVAL" || return 1
     TrimToDate "$snapshot_name" && local snapshot_date="$RETVAL" || return 1
-    TrimToTTL "$snapshot_name" && local snapshot_ttl="$RETVAL" || return 1
+    TrimToTTL "$snapshot_name" && local snapshot_ttl="$RETVAL"
 
-    local rebuilt_name="${snapshot_prefix}${snapshot_date}--${snapshot_ttl}"
+    if IsTrue "$TTL_PROPERTY" -a "$snapshot_ttl" != ""; then
+        local rebuilt_name="${snapshot_prefix}${snapshot_date}"
+    else
+        [ "$snapshot_ttl" = "" ] && return 1
+        local rebuilt_name="${snapshot_prefix}${snapshot_date}--${snapshot_ttl}"
+    fi
     [ "$rebuilt_name" = "$snapshot_name" ] && return 0 || return 1
+}
+
+# Returns 0 if it's a snapshot name that includes the TTL
+SnapshotNameIncludesTTL() {
+    IsSnapshot "$1" && return 1
+    local snapshot_name="$1"
+
+    TrimToTTL "$snapshot_name" && return 0 || return 1
 }
 
 # Check validity of TTL
