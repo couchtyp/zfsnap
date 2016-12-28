@@ -450,8 +450,11 @@ SetPropertyTTL() {
     local snapshot="$1"
     local ttl="$2"
 
-    # Check ValidTTL?
-    $ZFS_CMD set zfsnap:ttl=$ttl $snapshot && return 0
+    if IsFalse $DRY_RUN; then
+        $ZFS_CMD set zfsnap:ttl=$ttl "$snapshot" && return 0
+    else
+        printf '%s\n' "$ZFS_CMD set zfsnap:ttl=$ttl \"$snapshot\""
+    fi
 }
 
 # Check validity of a zfsnap date
