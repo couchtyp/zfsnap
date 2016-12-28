@@ -80,14 +80,14 @@ while [ "$1" ]; do
         ZFS_SNAPSHOT="$ZFS_CMD snapshot $ZOPT ${ZFS_SNAPSHOT_NAME}"
         if IsFalse "$DRY_RUN"; then
             if $ZFS_SNAPSHOT >&2; then
-		IsTrue $TTL_PROPERTY && SetPropertyTTL "${ZFS_SNAPSHOT_NAME}" "${TTL}"
+		IsTrue $TTL_PROPERTY && SetPropertyTTL "${ZFS_SNAPSHOT_NAME}" "${TTL}" "${ZOPT}"
                 IsTrue $VERBOSE && printf '%s ... DONE\n' "$ZFS_SNAPSHOT"
             else
                 IsTrue $VERBOSE && printf '%s ... FAIL\n' "$ZFS_SNAPSHOT"
             fi
         else
             printf '%s\n' "$ZFS_SNAPSHOT"
-            IsTrue $TTL_PROPERTY && SetPropertyTTL "${ZFS_SNAPSHOT_NAME}" "${TTL}"
+            IsTrue $TTL_PROPERTY && SetPropertyTTL "${ZFS_SNAPSHOT_NAME}" "${TTL}" "${ZOPT}"
         fi
 
         shift

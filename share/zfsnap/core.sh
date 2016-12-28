@@ -449,12 +449,16 @@ GetPropertyTTL() {
 SetPropertyTTL() {
     local snapshot="$1"
     local ttl="$2"
+    local opts="$3"
 
     if IsFalse $DRY_RUN; then
-        $ZFS_CMD set zfsnap:ttl=$ttl "$snapshot" && return 0
+        $ZFS_CMD set zfsnap:ttl=$ttl "$snapshot" || return 1
+        [ "$opts" = "-r" ] && $ZFS_CMD inherit -r zfsnap:ttl "$snapshot"
     else
         printf '%s\n' "$ZFS_CMD set zfsnap:ttl=$ttl \"$snapshot\""
+        [ "$opts" = "-r" ] && printf '%s\n' "$ZFS_CMD inherit -r zfsnap:ttl \"$snapshot\""
     fi
+    return 0
 }
 
 # Check validity of a zfsnap date
