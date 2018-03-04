@@ -96,7 +96,7 @@ while [ -n "$1" ]; do
                     if IsFalse $TTL_PROPERTY -o SnapshotNameIncludesTTL "$SNAPSHOT_NAME"; then
                         TrimToTTL "$SNAPSHOT_NAME" && TTL=$RETVAL || continue
                     else
-                        GetPropertyTTL "$SNAPSHOT_NAME" && TTL=$RETVAL || continue
+                        GetPropertyTTL "$SNAPSHOT" && TTL=$RETVAL || continue
                     fi
                     [ "$TTL" = 'forever' ] && continue
                     DatePlusTTL "$CREATE_DATE" "$TTL" && EXPIRATION_DATE=$RETVAL || continue
